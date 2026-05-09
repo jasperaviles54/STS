@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Sales Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+  <script type="module">
+    import { getSession } from "./js/auth.js";
+    const session = await getSession();
+    window.location.replace(session ? "today.html" : "login.html");
+  </script>
+</body>
+</html>
