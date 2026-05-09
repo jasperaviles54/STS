@@ -5,7 +5,7 @@ import { fetchSales, renderBucketCards, renderTotalsStrip, renderPie, renderTopL
 import { toast } from "./toast.js";
 
 await requireAuth();
-renderNav("monthly");
+await renderNav("monthly");
 
 const picker = document.getElementById("monthPicker");
 const bucketContainer = document.getElementById("bucketContainer");

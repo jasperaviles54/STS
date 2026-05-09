@@ -5,7 +5,7 @@ import { fetchSales, renderBucketCards, renderTotalsStrip, renderPie, renderTopL
 import { toast } from "./toast.js";
 
 await requireAuth();
-renderNav("weekly");
+await renderNav("weekly");
 
 const picker = document.getElementById("weekPicker");
 const rangeLabel = document.getElementById("rangeLabel");

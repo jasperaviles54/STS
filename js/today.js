@@ -5,7 +5,7 @@ import { totalSelling, gpPercent, gpPeso, peso, pct, localDateISO, sumTotals } f
 import { toast } from "./toast.js";
 
 await requireAuth();
-renderNav("today");
+await renderNav("today");
 
 const today = localDateISO();
 document.getElementById("todayDate").textContent = new Date().toLocaleDateString("en-PH", {

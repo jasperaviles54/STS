@@ -1,6 +1,7 @@
-import { logout } from "./auth.js";
+import { logout, getSession } from "./auth.js";
+import { DEMO_EMAIL } from "./config.js";
 
-export function renderNav(active) {
+export async function renderNav(active) {
   const items = [
     { href: "today.html",    label: "Today",    key: "today" },
     { href: "weekly.html",   label: "Weekly",   key: "weekly" },
@@ -12,6 +13,12 @@ export function renderNav(active) {
     `<li class="nav-item"><a class="nav-link ${i.key === active ? "active" : ""}" href="${i.href}">${i.label}</a></li>`
   ).join("");
 
+  const session = await getSession();
+  const isDemo = !!DEMO_EMAIL && session?.user?.email === DEMO_EMAIL;
+  const demoBadge = isDemo
+    ? `<span class="badge bg-warning text-dark me-2">DEMO MODE</span>`
+    : "";
+
   const html = `
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
       <div class="container-fluid">
@@ -21,6 +28,7 @@ export function renderNav(active) {
         </button>
         <div class="collapse navbar-collapse" id="navMenu">
           <ul class="navbar-nav me-auto">${links}</ul>
+          ${demoBadge}
           <button id="logoutBtn" class="btn btn-outline-light btn-sm">Logout</button>
         </div>
       </div>

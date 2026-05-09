@@ -5,7 +5,7 @@ import { peso } from "./calc.js";
 import { toast } from "./toast.js";
 
 await requireAuth();
-renderNav("products");
+await renderNav("products");
 
 const tbody = document.getElementById("productsBody");
 const form = document.getElementById("productForm");
