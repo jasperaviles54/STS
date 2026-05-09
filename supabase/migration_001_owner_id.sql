@@ -8,7 +8,7 @@
 -- Step 2: paste the whole file into the SQL editor and run.
 
 -- ===== EDIT THIS LINE =====
-do $$ begin perform set_config('app.primary_user', 'PASTE-YOUR-USER-UUID-HERE', false); end $$;
+do $$ begin perform set_config('app.primary_user', '6431079a-24bb-4b14-abb1-6e64d393c129', false); end $$;
 -- ==========================
 
 alter table products add column if not exists owner_id uuid references auth.users(id) on delete cascade;
