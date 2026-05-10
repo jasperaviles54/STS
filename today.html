@@ -56,11 +56,10 @@
           <input type="hidden" id="saleId">
           <div class="mb-3">
             <label class="form-label">Product</label>
-            <select id="productSelect" class="form-select" required>
-              <option value="">Select a product…</option>
-            </select>
+            <input id="productSearch" type="text" class="form-control" list="productList" autocomplete="off" required placeholder="Type to search…">
+            <datalist id="productList"></datalist>
             <div class="form-text">
-              Need a new one? <a href="products.html">Add it on the Products page.</a>
+              Type to filter the list. Need a new product? <a href="products.html">Add it on the Products page.</a>
             </div>
           </div>
           <div class="mb-3">

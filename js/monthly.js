@@ -1,7 +1,11 @@
 import { requireAuth } from "./auth.js";
 import { renderNav } from "./nav.js";
 import { localDateISO, monthRange, sumTotals } from "./calc.js";
-import { fetchSales, renderBucketCards, renderTotalsStrip, renderPie, renderTopList } from "./report.js";
+import {
+  fetchSales, renderBucketCards, renderTotalsStrip,
+  renderPie, renderTopList, renderSliceDetail,
+  aggregateBy, filterRowsBy,
+} from "./report.js";
 import { toast } from "./toast.js";
 
 await requireAuth();
@@ -11,19 +15,25 @@ const picker = document.getElementById("monthPicker");
 const bucketContainer = document.getElementById("bucketContainer");
 const totalsStrip = document.getElementById("totalsStrip");
 const pieCanvas = document.getElementById("pie");
-const topList = document.getElementById("topList");
+const topListEl = document.getElementById("topList");
+const groupByEl = document.getElementById("groupBy");
+const slicePanelEl = document.getElementById("slicePanel");
 
 const now = new Date();
 picker.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 picker.addEventListener("change", load);
+groupByEl.addEventListener("change", refreshAnalytics);
+
+const HEADERS = { products: "Product", categories: "Category", types: "Type" };
+
+let currentRows = [];
 
 async function load() {
   const [yStr, mStr] = picker.value.split("-");
   const year = Number(yStr), month = Number(mStr);
   const { start, end } = monthRange(year, month);
 
-  let rows;
-  try { rows = await fetchSales(start, end); }
+  try { currentRows = await fetchSales(start, end); }
   catch (e) { toast(e.message, "danger"); return; }
 
   // Bucket by ISO week-of-month: weeks start on Monday.
@@ -31,10 +41,8 @@ async function load() {
   const endDate   = new Date(year, month, 0);
   const buckets = [];
   let cursor = new Date(startDate);
-  // Move cursor back to the Monday of week 1 (but only show dates that are in this month).
   let weekIdx = 1;
   while (cursor <= endDate) {
-    // End of current week = Sunday
     const weekStart = new Date(cursor);
     const dayOfWeek = (weekStart.getDay() + 6) % 7; // 0 = Mon
     const weekEnd = new Date(weekStart);
@@ -43,7 +51,7 @@ async function load() {
 
     const wsIso = localDateISO(weekStart);
     const weIso = localDateISO(weekEnd);
-    const bucketRows = rows.filter(r => r.sold_at >= wsIso && r.sold_at <= weIso);
+    const bucketRows = currentRows.filter(r => r.sold_at >= wsIso && r.sold_at <= weIso);
     const fmt = d => d.toLocaleDateString("en-PH", { month: "short", day: "numeric" });
     buckets.push({
       label: `Week ${weekIdx} · ${fmt(weekStart)} – ${fmt(weekEnd)}`,
@@ -56,9 +64,20 @@ async function load() {
   }
 
   renderBucketCards(bucketContainer, buckets);
-  renderTotalsStrip(totalsStrip, sumTotals(rows));
-  const top = renderPie(pieCanvas, rows);
-  renderTopList(topList, top);
+  renderTotalsStrip(totalsStrip, sumTotals(currentRows));
+  refreshAnalytics();
+}
+
+function refreshAnalytics() {
+  slicePanelEl.innerHTML = "";
+  const mode = groupByEl.value;
+  const limit = mode === "products" ? 5 : null;
+  const items = aggregateBy(currentRows, mode, limit);
+  renderPie(pieCanvas, items, (label) => {
+    const matched = filterRowsBy(currentRows, mode, label);
+    renderSliceDetail(slicePanelEl, label, matched);
+  });
+  renderTopList(topListEl, items, HEADERS[mode]);
 }
 
 await load();

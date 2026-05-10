@@ -15,12 +15,15 @@ document.getElementById("todayDate").textContent = new Date().toLocaleDateString
 const tbody = document.getElementById("salesBody");
 const tfoot = document.getElementById("salesFoot");
 const totalsStrip = document.getElementById("totalsStrip");
-const productSelect = document.getElementById("productSelect");
+const productSearch = document.getElementById("productSearch");
+const productListEl = document.getElementById("productList");
 const form = document.getElementById("saleForm");
 const titleEl = document.getElementById("saleModalTitle");
 const idEl = document.getElementById("saleId");
 const qtyEl = document.getElementById("quantity");
 const modal = new bootstrap.Modal(document.getElementById("saleModal"));
+
+let products = []; // [{ id, name }]
 
 document.getElementById("addBtn").addEventListener("click", () => {
   titleEl.textContent = "Add sale";
@@ -31,15 +34,24 @@ document.getElementById("addBtn").addEventListener("click", () => {
 async function loadProducts() {
   const { data, error } = await supabase.from("products").select("id, name").order("name");
   if (error) { toast(error.message, "danger"); return; }
-  productSelect.innerHTML =
-    `<option value="">Select a product…</option>` +
-    data.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join("");
+  products = data ?? [];
+  productListEl.innerHTML = products.map(p => `<option value="${escapeAttr(p.name)}">`).join("");
+}
+
+function findProductByName(name) {
+  const trimmed = name.trim().toLowerCase();
+  return products.find(p => p.name.toLowerCase() === trimmed);
 }
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
+  const product = findProductByName(productSearch.value);
+  if (!product) {
+    toast("Product not found. Pick from the list or add it on the Products page.", "danger");
+    return;
+  }
   const payload = {
-    product_id: productSelect.value,
+    product_id: product.id,
     quantity: Number(qtyEl.value),
     sold_at: today,
   };
@@ -107,7 +119,7 @@ async function loadSales() {
       const r = data.find(x => x.id === btn.dataset.edit);
       titleEl.textContent = "Edit sale";
       idEl.value = r.id;
-      productSelect.value = r.products.id;
+      productSearch.value = r.products.name;
       qtyEl.value = r.quantity;
       modal.show();
     });
@@ -132,6 +144,9 @@ function renderStrip(t) {
 
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function escapeAttr(s) {
+  return String(s).replace(/"/g, "&quot;");
 }
 
 await loadProducts();

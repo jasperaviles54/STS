@@ -18,18 +18,6 @@ export function sumTotals(rows) {
   return { qty, revenue, profit };
 }
 
-export function topProductsByQty(rows, limit = 5) {
-  const map = new Map();
-  for (const r of rows) {
-    const name = r.products.name;
-    map.set(name, (map.get(name) || 0) + r.quantity);
-  }
-  return [...map.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, limit)
-    .map(([name, qty]) => ({ name, qty }));
-}
-
 export const peso = (n) => "₱" + Number(n).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 export const pct  = (n) => Number(n).toFixed(0) + "%";
 

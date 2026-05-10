@@ -3,11 +3,14 @@ import { supabase } from "./supabase.js";
 import { renderNav } from "./nav.js";
 import { peso } from "./calc.js";
 import { toast } from "./toast.js";
+import { fetchAllSales, aggregateBy, renderPie, renderTopList } from "./report.js";
 
 await requireAuth();
 await renderNav("products");
 
 const tbody = document.getElementById("productsBody");
+const topPieEl = document.getElementById("topPie");
+const topListEl = document.getElementById("topList");
 const form = document.getElementById("productForm");
 const modalEl = document.getElementById("productModal");
 const modal = new bootstrap.Modal(modalEl);
@@ -94,6 +97,7 @@ form.addEventListener("submit", async (e) => {
   modal.hide();
   await loadCategoriesAndTypes();
   await load();
+  await loadTopSellers();
 });
 
 async function loadCategoriesAndTypes() {
@@ -168,8 +172,22 @@ async function load() {
       }
       toast("Product deleted.", "success");
       await load();
+      await loadTopSellers();
     });
   });
+}
+
+async function loadTopSellers() {
+  let rows;
+  try {
+    rows = await fetchAllSales();
+  } catch (e) {
+    toast(e.message, "danger");
+    return;
+  }
+  const top = aggregateBy(rows, "products", 5);
+  renderPie(topPieEl, top);
+  renderTopList(topListEl, top, "Product");
 }
 
 function escapeHtml(s) {
@@ -181,3 +199,4 @@ function escapeAttr(s) {
 
 await loadCategoriesAndTypes();
 await load();
+await loadTopSellers();

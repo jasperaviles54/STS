@@ -1,7 +1,11 @@
 import { requireAuth } from "./auth.js";
 import { renderNav } from "./nav.js";
 import { localDateISO, weekRange, sumTotals } from "./calc.js";
-import { fetchSales, renderBucketCards, renderTotalsStrip, renderPie, renderTopList } from "./report.js";
+import {
+  fetchSales, renderBucketCards, renderTotalsStrip,
+  renderPie, renderTopList, renderSliceDetail,
+  aggregateBy, filterRowsBy,
+} from "./report.js";
 import { toast } from "./toast.js";
 
 await requireAuth();
@@ -12,12 +16,18 @@ const rangeLabel = document.getElementById("rangeLabel");
 const bucketContainer = document.getElementById("bucketContainer");
 const totalsStrip = document.getElementById("totalsStrip");
 const pieCanvas = document.getElementById("pie");
-const topList = document.getElementById("topList");
+const topListEl = document.getElementById("topList");
+const groupByEl = document.getElementById("groupBy");
+const slicePanelEl = document.getElementById("slicePanel");
 
 picker.value = localDateISO();
 picker.addEventListener("change", load);
+groupByEl.addEventListener("change", refreshAnalytics);
 
 const DAY_NAMES = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const HEADERS = { products: "Product", categories: "Category", types: "Type" };
+
+let currentRows = [];
 
 async function load() {
   const { start, end, monday } = weekRange(new Date(picker.value));
@@ -25,9 +35,8 @@ async function load() {
   const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
   rangeLabel.textContent = `${fmt(monday)} – ${fmt(sunday)}, ${sunday.getFullYear()}`;
 
-  let rows;
   try {
-    rows = await fetchSales(start, end);
+    currentRows = await fetchSales(start, end);
   } catch (e) {
     toast(e.message, "danger");
     return;
@@ -36,13 +45,24 @@ async function load() {
   const buckets = DAY_NAMES.map((label, i) => {
     const day = new Date(monday); day.setDate(monday.getDate() + i);
     const iso = localDateISO(day);
-    return { label: `${label} · ${fmt(day)}`, rows: rows.filter(r => r.sold_at === iso) };
+    return { label: `${label} · ${fmt(day)}`, rows: currentRows.filter(r => r.sold_at === iso) };
   });
 
   renderBucketCards(bucketContainer, buckets);
-  renderTotalsStrip(totalsStrip, sumTotals(rows));
-  const top = renderPie(pieCanvas, rows);
-  renderTopList(topList, top);
+  renderTotalsStrip(totalsStrip, sumTotals(currentRows));
+  refreshAnalytics();
+}
+
+function refreshAnalytics() {
+  slicePanelEl.innerHTML = "";
+  const mode = groupByEl.value;
+  const limit = mode === "products" ? 5 : null;
+  const items = aggregateBy(currentRows, mode, limit);
+  renderPie(pieCanvas, items, (label) => {
+    const matched = filterRowsBy(currentRows, mode, label);
+    renderSliceDetail(slicePanelEl, label, matched);
+  });
+  renderTopList(topListEl, items, HEADERS[mode]);
 }
 
 await load();
