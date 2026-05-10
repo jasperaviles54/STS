@@ -21,6 +21,8 @@
           <thead class="table-light">
             <tr>
               <th>#</th>
+              <th>Category</th>
+              <th>Type</th>
               <th>Name</th>
               <th class="text-end">Purchasing Price</th>
               <th class="text-end">Selling Price</th>
@@ -28,7 +30,7 @@
             </tr>
           </thead>
           <tbody id="productsBody">
-            <tr><td colspan="5" class="text-center text-muted py-4">Loading…</td></tr>
+            <tr><td colspan="7" class="text-center text-muted py-4">Loading…</td></tr>
           </tbody>
         </table>
       </div>
@@ -44,6 +46,18 @@
         </div>
         <div class="modal-body">
           <input type="hidden" id="productId">
+          <div class="mb-3">
+            <label class="form-label">Category</label>
+            <input id="categoryInput" type="text" class="form-control" list="categoryList" autocomplete="off" required>
+            <datalist id="categoryList"></datalist>
+            <div class="form-text">Pick an existing category or type a new one.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Type</label>
+            <input id="typeInput" type="text" class="form-control" list="typeList" autocomplete="off" required>
+            <datalist id="typeList"></datalist>
+            <div class="form-text">Pick an existing type within the chosen category, or type a new one.</div>
+          </div>
           <div class="mb-3">
             <label class="form-label">Name</label>
             <input id="productName" type="text" class="form-control" required>

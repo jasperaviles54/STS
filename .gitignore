@@ -3,6 +3,7 @@ Thumbs.db
 node_modules/
 .vercel
 supabase/
+supabase/migration_002_categories.sql
 supabase/migration_001_owner_id.sql
 supabase/schema.sql
 README.md
