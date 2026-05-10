@@ -145,13 +145,19 @@ export function renderBucketCards(containerEl, buckets) {
   containerEl.innerHTML = buckets.map((b, idx) => {
     const t = sumTotals(b.rows);
     const collapseId = `bucket${idx}`;
+    const editLink = b.editHref
+      ? `<a href="${b.editHref}" class="small text-decoration-none">Edit →</a>`
+      : "";
     return `
       <div class="card day-card mb-2 shadow-sm">
         <div class="card-header">
-          <button class="btn btn-link text-decoration-none p-0 fw-semibold" type="button"
-                  data-bs-toggle="collapse" data-bs-target="#${collapseId}">
-            ${escapeHtml(b.label)}
-          </button>
+          <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-link text-decoration-none p-0 fw-semibold" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#${collapseId}">
+              ${escapeHtml(b.label)}
+            </button>
+            ${editLink}
+          </div>
           <div class="small text-muted">
             ${t.qty} items · ${peso(t.revenue)} revenue · ${peso(t.profit)} profit
           </div>

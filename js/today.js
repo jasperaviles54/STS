@@ -8,9 +8,32 @@ await requireAuth();
 await renderNav("today");
 
 const today = localDateISO();
-document.getElementById("todayDate").textContent = new Date().toLocaleDateString("en-PH", {
-  weekday: "long", year: "numeric", month: "long", day: "numeric"
+const dateLabelEl = document.getElementById("todayDate");
+const datePicker = document.getElementById("datePicker");
+
+const urlDate = new URLSearchParams(window.location.search).get("date");
+let currentDate = (urlDate && /^\d{4}-\d{2}-\d{2}$/.test(urlDate) && urlDate <= today)
+  ? urlDate
+  : today;
+
+datePicker.max = today;
+datePicker.value = currentDate;
+datePicker.addEventListener("change", async () => {
+  if (!datePicker.value) { datePicker.value = currentDate; return; }
+  currentDate = datePicker.value > today ? today : datePicker.value;
+  datePicker.value = currentDate;
+  updateDateLabel();
+  await loadSales();
 });
+
+function updateDateLabel() {
+  const d = new Date(currentDate + "T00:00:00");
+  dateLabelEl.textContent = d.toLocaleDateString("en-PH", {
+    weekday: "long", year: "numeric", month: "long", day: "numeric"
+  });
+}
+
+updateDateLabel();
 
 const tbody = document.getElementById("salesBody");
 const tfoot = document.getElementById("salesFoot");
@@ -53,7 +76,7 @@ form.addEventListener("submit", async (e) => {
   const payload = {
     product_id: product.id,
     quantity: Number(qtyEl.value),
-    sold_at: today,
+    sold_at: currentDate,
   };
   const id = idEl.value;
   const { error } = id
@@ -68,14 +91,17 @@ async function loadSales() {
   const { data, error } = await supabase
     .from("sales")
     .select("id, quantity, sold_at, products ( id, name, purchasing_price, selling_price )")
-    .eq("sold_at", today)
+    .eq("sold_at", currentDate)
     .order("created_at");
   if (error) {
     tbody.innerHTML = `<tr><td colspan="9" class="text-danger">${error.message}</td></tr>`;
     return;
   }
   if (!data.length) {
-    tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">No sales yet today. Click "+ Add sale" to record one.</td></tr>`;
+    const msg = currentDate === today
+      ? `No sales yet today. Click "+ Add sale" to record one.`
+      : `No sales on ${currentDate}. Click "+ Add sale" to record one.`;
+    tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">${msg}</td></tr>`;
     tfoot.innerHTML = "";
     renderStrip({ qty: 0, revenue: 0, profit: 0 });
     return;

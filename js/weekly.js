@@ -45,7 +45,11 @@ async function load() {
   const buckets = DAY_NAMES.map((label, i) => {
     const day = new Date(monday); day.setDate(monday.getDate() + i);
     const iso = localDateISO(day);
-    return { label: `${label} · ${fmt(day)}`, rows: currentRows.filter(r => r.sold_at === iso) };
+    return {
+      label: `${label} · ${fmt(day)}`,
+      editHref: `today.html?date=${iso}`,
+      rows: currentRows.filter(r => r.sold_at === iso),
+    };
   });
 
   renderBucketCards(bucketContainer, buckets);

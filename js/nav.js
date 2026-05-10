@@ -3,7 +3,7 @@ import { DEMO_EMAIL } from "./config.js";
 
 export async function renderNav(active) {
   const items = [
-    { href: "today.html",    label: "Today",    key: "today" },
+    { href: "today.html",    label: "Sales",    key: "today" },
     { href: "weekly.html",   label: "Weekly",   key: "weekly" },
     { href: "monthly.html",  label: "Monthly",  key: "monthly" },
     { href: "yearly.html",   label: "Yearly",   key: "yearly" },
