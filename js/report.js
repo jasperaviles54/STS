@@ -4,7 +4,7 @@ import { totalSelling, gpPercent, gpPeso, peso, pct, sumTotals } from "./calc.js
 const SALES_SELECT = `
   id, quantity, sold_at,
   products (
-    id, name, purchasing_price, selling_price,
+    id, name, purchasing_price, selling_price, bulk_pricing,
     product_types ( id, name, categories ( id, name ) )
   )
 `;
@@ -72,15 +72,16 @@ function rowsTableHtml(rows) {
   const body = rows.map((r, i) => {
     const buy = Number(r.products.purchasing_price);
     const sell = Number(r.products.selling_price);
+    const bulk = !!r.products.bulk_pricing;
     return `
       <tr>
         <td>${i + 1}</td>
-        <td>${escapeHtml(r.products.name)}</td>
+        <td>${escapeHtml(r.products.name)}${bulk ? ' <span class="badge bg-info text-dark">Bulk</span>' : ""}</td>
         <td>${escapeHtml(r.sold_at)}</td>
         <td class="text-end">${r.quantity}</td>
         <td class="text-end">${peso(buy)}</td>
         <td class="text-end">${peso(sell)}</td>
-        <td class="text-end">${peso(totalSelling(r.quantity, sell))}</td>
+        <td class="text-end">${peso(totalSelling(r.quantity, sell, bulk))}</td>
         <td class="text-end">${pct(gpPercent(buy, sell))}</td>
         <td class="text-end">${peso(gpPeso(buy, sell))}</td>
       </tr>`;
@@ -110,14 +111,15 @@ function rowsTableHtmlNoDate(rows) {
   const body = rows.map((r, i) => {
     const buy = Number(r.products.purchasing_price);
     const sell = Number(r.products.selling_price);
+    const bulk = !!r.products.bulk_pricing;
     return `
       <tr>
         <td>${i + 1}</td>
-        <td>${escapeHtml(r.products.name)}</td>
+        <td>${escapeHtml(r.products.name)}${bulk ? ' <span class="badge bg-info text-dark">Bulk</span>' : ""}</td>
         <td class="text-end">${r.quantity}</td>
         <td class="text-end">${peso(buy)}</td>
         <td class="text-end">${peso(sell)}</td>
-        <td class="text-end">${peso(totalSelling(r.quantity, sell))}</td>
+        <td class="text-end">${peso(totalSelling(r.quantity, sell, bulk))}</td>
         <td class="text-end">${pct(gpPercent(buy, sell))}</td>
         <td class="text-end">${peso(gpPeso(buy, sell))}</td>
       </tr>`;

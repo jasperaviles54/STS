@@ -23,6 +23,8 @@ const categoryEl = document.getElementById("categoryInput");
 const typeEl = document.getElementById("typeInput");
 const categoryListEl = document.getElementById("categoryList");
 const typeListEl = document.getElementById("typeList");
+const bulkPricingRow = document.getElementById("bulkPricingRow");
+const bulkPricingEl = document.getElementById("bulkPricing");
 
 let categories = []; // [{ id, name }]
 let types = [];      // [{ id, name, category_id }]
@@ -32,9 +34,25 @@ document.getElementById("addBtn").addEventListener("click", () => {
   form.reset();
   idEl.value = "";
   refreshTypeList();
+  refreshBulkVisibility();
 });
 
 categoryEl.addEventListener("input", refreshTypeList);
+typeEl.addEventListener("input", refreshBulkVisibility);
+
+function isCandyType(name) {
+  const t = (name || "").trim().toLowerCase();
+  return t === "candy" || t === "candies";
+}
+
+function refreshBulkVisibility() {
+  if (isCandyType(typeEl.value)) {
+    bulkPricingRow.classList.remove("d-none");
+  } else {
+    bulkPricingRow.classList.add("d-none");
+    bulkPricingEl.checked = false;
+  }
+}
 
 function refreshTypeList() {
   const catName = categoryEl.value.trim().toLowerCase();
@@ -85,6 +103,7 @@ form.addEventListener("submit", async (e) => {
     purchasing_price: Number(buyEl.value),
     selling_price: Number(sellEl.value),
     type_id: typeId,
+    bulk_pricing: isCandyType(typeName) && bulkPricingEl.checked,
   };
   const id = idEl.value;
   const { error } = id
@@ -117,7 +136,7 @@ async function load() {
   const { data, error } = await supabase
     .from("products")
     .select(`
-      id, name, purchasing_price, selling_price, type_id,
+      id, name, purchasing_price, selling_price, type_id, bulk_pricing,
       product_types ( id, name, category_id, categories ( id, name ) )
     `)
     .order("name");
@@ -132,12 +151,15 @@ async function load() {
   tbody.innerHTML = data.map((p, i) => {
     const categoryName = p.product_types?.categories?.name ?? "";
     const typeName = p.product_types?.name ?? "";
+    const bulkBadge = p.bulk_pricing
+      ? ` <span class="badge bg-info text-dark ms-1" title="₱5 per 4, +₱1 per extra">Bulk 5/4</span>`
+      : "";
     return `
       <tr>
         <td>${i + 1}</td>
         <td>${categoryName ? escapeHtml(categoryName) : '<span class="text-muted">—</span>'}</td>
         <td>${typeName ? escapeHtml(typeName) : '<span class="text-muted">—</span>'}</td>
-        <td>${escapeHtml(p.name)}</td>
+        <td>${escapeHtml(p.name)}${bulkBadge}</td>
         <td class="text-end">${peso(p.purchasing_price)}</td>
         <td class="text-end">${peso(p.selling_price)}</td>
         <td class="text-end">
@@ -158,6 +180,8 @@ async function load() {
       categoryEl.value = p.product_types?.categories?.name ?? "";
       typeEl.value = p.product_types?.name ?? "";
       refreshTypeList();
+      refreshBulkVisibility();
+      bulkPricingEl.checked = !!p.bulk_pricing;
       modal.show();
     });
   });

@@ -84,6 +84,17 @@
               <input id="sellingPrice" type="number" min="0" step="0.01" class="form-control" required>
             </div>
           </div>
+          <div id="bulkPricingRow" class="mb-3 d-none">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="bulkPricing">
+              <label class="form-check-label" for="bulkPricing">
+                Bulk candy pricing — ₱5 per 4 pieces, +₱1 per extra
+              </label>
+            </div>
+            <div class="form-text">
+              Total Selling Price for this product follows the bulk formula instead of qty × sell.
+            </div>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>

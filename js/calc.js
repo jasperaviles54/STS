@@ -1,19 +1,24 @@
 // Per-row calculations (formulas chosen by the user).
-export const totalSelling = (qty, sell) => qty * sell;
-export const gpPercent    = (buy, sell) => (sell === 0 ? 0 : (buy / sell) * 100);
-export const gpPeso       = (buy, sell) => sell - buy;
+// When `bulkPricing` is true the candy rule applies: ₱5 per pack of 4, ₱1 per leftover.
+export const bulkCandyPrice = (qty) => Math.floor(qty / 4) * 5 + (qty % 4) * 1;
+export const totalSelling   = (qty, sell, bulkPricing = false) =>
+  bulkPricing ? bulkCandyPrice(qty) : qty * sell;
+export const gpPercent      = (buy, sell) => (sell === 0 ? 0 : (buy / sell) * 100);
+export const gpPeso         = (buy, sell) => sell - buy;
 
-// Aggregate helpers used by weekly/monthly/yearly pages.
-// Each `row` is expected to look like { quantity, products: { purchasing_price, selling_price, name } }.
+// Aggregate helpers used by today + weekly/monthly/yearly pages.
+// Each row: { quantity, products: { purchasing_price, selling_price, bulk_pricing, name } }.
 export function sumTotals(rows) {
   let qty = 0, revenue = 0, profit = 0;
   for (const r of rows) {
     const q = r.quantity;
     const buy = Number(r.products.purchasing_price);
     const sell = Number(r.products.selling_price);
+    const bulk = !!r.products.bulk_pricing;
+    const rowRevenue = totalSelling(q, sell, bulk);
     qty += q;
-    revenue += q * sell;
-    profit += (sell - buy) * q;
+    revenue += rowRevenue;
+    profit += rowRevenue - q * buy;
   }
   return { qty, revenue, profit };
 }
